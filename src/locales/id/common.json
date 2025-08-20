@@ -1,0 +1,17 @@
+{
+  "login": {
+    "title": "Masuk",
+    "email": "Email",
+    "password": "Kata sandi",
+    "submit": "Masuk"
+  },
+  "dashboard": {
+    "title": "Dasbor",
+    "welcome": "Selamat datang kembali",
+    "welcome_back": "Selamat datang kembali, {{name}}!",
+    "subtitle": "Berikut samudra wawasan dan analitik Anda hari ini.",
+    "premium_dashboard": "Dasbor Premium",
+    "live_data": "Data Langsung",
+    "view_reports": "Lihat Laporan"
+  }
+}

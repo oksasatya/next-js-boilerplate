@@ -1,0 +1,19 @@
+# Build output
+.next
+out
+build
+dist
+
+# Node
+node_modules
+
+# Misc
+coverage
+.turbo
+.vercel
+.next-static
+.next-cache
+
+# Locks and info
+*.tsbuildinfo
+
