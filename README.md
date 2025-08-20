@@ -128,6 +128,55 @@ src/
 - RTK Query endpoints are scaffolded in `features/auth/api.ts` (`/auth/login`, `/auth/me`).
 - Demo flow uses client-side delay + redirect; replace with real API as needed.
 
+## Smooth Scroll (GSAP)
+
+GSAP ScrollToPlugin is installed and globally wired to animate scroll for in-page anchors.
+
+Setup (already done):
+
+- Installed: `npm install gsap`
+- Provider: `src/components/providers/smooth-scroll-provider.tsx`
+- Wired in: `src/components/providers.tsx`
+- CSS: native `scroll-behavior` disabled to avoid conflicts
+
+How it works:
+
+- Any link with `href="#section-id"` will animate to the element with `id="section-id"`.
+- Optional offset for fixed headers: `data-offset-y="64"` (pixels)
+- Opt-out per link: `data-no-smooth="true"`
+
+Usage examples:
+
+```tsx
+// Add an anchor link anywhere
+<a href="#features" className="text-blue-600">See features</a>
+
+// Target section
+<section id="features">...</section>
+
+// With custom offset (e.g., fixed header height)
+<a href="#pricing" data-offset-y="72">Pricing</a>
+
+// Disable smooth scroll for certain link
+<a href="#contact" data-no-smooth="true">Contact</a>
+```
+
+Programmatic scrolling:
+
+```ts
+import gsap from "gsap";
+import { ScrollToPlugin } from "gsap/ScrollToPlugin";
+
+gsap.registerPlugin(ScrollToPlugin);
+
+gsap.to(window, { duration: 0.8, ease: "power2.out", scrollTo: { y: "#features", offsetY: 64 } });
+```
+
+Notes:
+
+- Native CSS smooth scrolling is disabled in `app/globals.css` so GSAP can control behavior.
+- On page load with a hash (e.g., `/about#team`), the scroll animates to the target automatically.
+
 ## Scripts
 
 - `npm run dev` – Start dev server (Turbopack)
