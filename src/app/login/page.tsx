@@ -100,7 +100,7 @@ export default function LoginPage() {
 
         // Small delay before redirect to show success message
         setTimeout(() => {
-          router.replace("/admin");
+          router.replace("/admin/dashboard");
         });
 
         return;

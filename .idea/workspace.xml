@@ -5,15 +5,21 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="3160b6e2-0b60-4c37-8c9c-ea94fe150770" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/public/css/animate.css" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/components/providers/smooth-scroll-provider.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/app/admin/dashboard/page.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/app/admin/layout.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/lib/get-admin-menu.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/lib/sidebar-store.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/globals.css" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/globals.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/providers.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/providers.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/admin/components/dashboard/KPICards.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/admin/dashboard/components/KPICards.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/admin/components/dashboard/QuickStats.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/admin/dashboard/components/QuickStats.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/admin/components/dashboard/RecentActivity.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/admin/dashboard/components/RecentActivity.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/admin/components/dashboard/RevenueChart.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/admin/dashboard/components/RevenueChart.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/admin/components/dashboard/SystemHealth.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/admin/dashboard/components/SystemHealth.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/admin/components/dashboard/welcome-section.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/admin/dashboard/components/welcome-section.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/admin/page.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/login/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/login/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/layout/header.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/layout/header.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/layout/sidebar.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/layout/sidebar.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -24,8 +30,8 @@
     <option name="RECENT_TEMPLATES">
       <list>
         <option value="TypeScript File" />
-        <option value="TypeScript JSX File" />
         <option value="CSS File" />
+        <option value="TypeScript JSX File" />
       </list>
     </option>
   </component>
@@ -52,33 +58,38 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ASKED_SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "code.cleanup.on.save": "true",
-    "git-widget-placeholder": "main",
-    "js.debugger.nextJs.config.created.client": "true",
-    "js.debugger.nextJs.config.created.server": "true",
-    "list.type.of.created.stylesheet": "CSS",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.stylelint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.stylelint": "",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "npm.Next.js: server-side.executor": "Debug",
-    "npm.format.executor": "Run",
-    "npm.lint:fix.executor": "Run",
-    "prettierjs.PrettierConfiguration.Package": "G:\\next-js-boilerplate\\node_modules\\prettier",
-    "settings.editor.selected.configurable": "configurable.tailwindcss",
-    "ts.external.directory.path": "G:\\next-js-boilerplate\\node_modules\\typescript\\lib",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ASKED_SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;code.cleanup.on.save&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;js.debugger.nextJs.config.created.client&quot;: &quot;true&quot;,
+    &quot;js.debugger.nextJs.config.created.server&quot;: &quot;true&quot;,
+    &quot;list.type.of.created.stylesheet&quot;: &quot;CSS&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.stylelint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.stylelint&quot;: &quot;&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;npm.Next.js: server-side.executor&quot;: &quot;Debug&quot;,
+    &quot;npm.format.executor&quot;: &quot;Run&quot;,
+    &quot;npm.lint:fix.executor&quot;: &quot;Run&quot;,
+    &quot;prettierjs.PrettierConfiguration.Package&quot;: &quot;G:\\next-js-boilerplate\\node_modules\\prettier&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;configurable.tailwindcss&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;G:\\next-js-boilerplate\\node_modules\\typescript\\lib&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="G:\next-js-boilerplate\src\app\admin\dashboard\components" />
+    </key>
+  </component>
   <component name="RunManager" selected="npm.Next.js: server-side">
     <configuration name="Next.js: debug client-side" type="JavascriptDebugType" uri="http://localhost:3000/">
       <method v="2" />
@@ -140,6 +151,7 @@
       <workItem from="1755694955173" duration="130000" />
       <workItem from="1755695098110" duration="3526000" />
       <workItem from="1755715039714" duration="2404000" />
+      <workItem from="1755776462392" duration="2977000" />
     </task>
     <servers />
   </component>

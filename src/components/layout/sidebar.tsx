@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
-import { Separator } from "@/components/ui/separator";
 import {
   LayoutDashboard,
   Users,
@@ -30,12 +29,15 @@ import {
   Menu,
   LogOut,
   User,
+  Circle,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { logout } from "@/lib/auth";
+import type { AdminMenuItem } from "@/lib/get-admin-menu";
+import { useSidebarStore } from "@/lib/sidebar-store";
 
 interface SidebarProps {
   isOpen?: boolean;
@@ -46,21 +48,23 @@ interface SidebarProps {
     role?: string;
     avatar?: string;
   };
+  // New: optional dynamic menu from server
+  menuItems?: AdminMenuItem[];
 }
 
 interface MenuItem {
   title: string;
-  icon: React.ElementType;
+  icon?: React.ElementType;
   href: string;
   badge?: string | null;
   children?: MenuItem[];
 }
 
-const menuItems: MenuItem[] = [
+const staticMenuItems: MenuItem[] = [
   {
     title: "Dashboard",
     icon: LayoutDashboard,
-    href: "/admin",
+    href: "/admin/dashboard",
   },
   {
     title: "Analytics",
@@ -187,11 +191,52 @@ function SidebarSkeleton() {
   );
 }
 
-export default function Sidebar({ isOpen = true, onClose, userData }: SidebarProps) {
+export default function Sidebar({
+  isOpen: isOpenProp,
+  onClose: onCloseProp,
+  userData,
+  menuItems,
+}: SidebarProps) {
   const pathname = usePathname();
+  const { isOpen: isOpenStore, close } = useSidebarStore();
+  const isOpen = isOpenProp ?? isOpenStore ?? true;
+  const onClose = onCloseProp ?? close;
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
+
+  // Map file-based items to UI items with icons
+  const items: MenuItem[] = useMemo(() => {
+    if (!menuItems || !menuItems.length) return staticMenuItems;
+
+    const iconMap: Record<string, React.ElementType> = {
+      Dashboard: LayoutDashboard,
+      Analytics: BarChart3,
+      Users: Users,
+      Reports: FileText,
+      "System Health": Activity,
+      System: Activity,
+      Database: Database,
+      Notifications: Bell,
+      Security: Shield,
+      Settings: Settings,
+    };
+
+    const withIcons = (list: AdminMenuItem[]): MenuItem[] =>
+      list.map((i) => ({
+        title: i.title,
+        href: i.href,
+        badge: i.badge ?? null,
+        icon: iconMap[i.title] || FileText,
+        children: i.children?.map((c) => ({
+          title: c.title,
+          href: c.href,
+          icon: FileText,
+        })),
+      }));
+
+    return withIcons(menuItems);
+  }, [menuItems]);
 
   // Check if current path matches any child route
   const isParentActive = (item: MenuItem): boolean => {
@@ -204,14 +249,14 @@ export default function Sidebar({ isOpen = true, onClose, userData }: SidebarPro
 
   // Auto-expand parent if child is active
   useEffect(() => {
-    menuItems.forEach((item) => {
+    items.forEach((item) => {
       if (item.children && item.children.some((child) => pathname === child.href)) {
         if (!expandedItems.includes(item.title)) {
           setExpandedItems((prev) => [...prev, item.title]);
         }
       }
     });
-  }, [pathname]);
+  }, [pathname, items]);
 
   const toggleExpanded = (itemTitle: string) => {
     setExpandedItems((prev) =>
@@ -223,7 +268,7 @@ export default function Sidebar({ isOpen = true, onClose, userData }: SidebarPro
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 1000);
+    }, 500);
     return () => clearTimeout(timer);
   }, []);
 
@@ -248,7 +293,7 @@ export default function Sidebar({ isOpen = true, onClose, userData }: SidebarPro
 
   // Reinstate dropdown animation only
   const renderMenuItem = (item: MenuItem) => {
-    const Icon = item.icon;
+    const Icon = item.icon || FileText;
     const isActive = pathname === item.href;
     const hasChildren = item.children && item.children.length > 0;
     const isExpanded = expandedItems.includes(item.title);
@@ -326,7 +371,7 @@ export default function Sidebar({ isOpen = true, onClose, userData }: SidebarPro
                   className="mt-1 ml-6 space-y-1"
                 >
                   {item.children?.map((child) => {
-                    const ChildIcon = child.icon;
+                    const ChildIcon = child.icon || Circle;
                     const isChildActive = pathname === child.href;
                     return (
                       <div key={child.href}>
@@ -352,62 +397,7 @@ export default function Sidebar({ isOpen = true, onClose, userData }: SidebarPro
             </AnimatePresence>
           </div>
         ) : (
-          <Link href={item.href}>
-            {isCollapsed && hasChildren ? (
-              <Tooltip>
-                <TooltipTrigger asChild>{menuButton}</TooltipTrigger>
-                <TooltipContent
-                  side="right"
-                  className="border-gray-200 bg-white/95 shadow-lg"
-                  sideOffset={8}
-                >
-                  <div className="max-w-xs">
-                    <p className="text-sm font-semibold">{item.title}</p>
-                    {item.children && (
-                      <>
-                        <Separator className="my-2" />
-                        <div className="space-y-1">
-                          {item.children.map((child) => (
-                            <p key={child.href} className="flex items-center text-xs text-gray-500">
-                              <span className="mr-2 h-1 w-1 rounded-full bg-gray-400"></span>
-                              {child.title}
-                            </p>
-                          ))}
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-            ) : isCollapsed ? (
-              <Tooltip>
-                <TooltipTrigger asChild>{menuButton}</TooltipTrigger>
-                <TooltipContent
-                  side="right"
-                  className="border-gray-200 bg-white/95 shadow-lg"
-                  sideOffset={8}
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm">{item.title}</span>
-                    {item.badge && (
-                      <span
-                        className={cn(
-                          "rounded-full px-2 py-0.5 text-xs font-semibold",
-                          item.badge === "New"
-                            ? "bg-white/20 text-white backdrop-blur-sm"
-                            : "bg-white/10 text-white/90",
-                        )}
-                      >
-                        {item.badge}
-                      </span>
-                    )}
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-            ) : (
-              menuButton
-            )}
-          </Link>
+          <Link href={item.href}>{menuButton}</Link>
         )}
       </div>
     );
@@ -488,7 +478,9 @@ export default function Sidebar({ isOpen = true, onClose, userData }: SidebarPro
 
           {/* Navigation */}
           <nav className="flex-1 space-y-1 overflow-y-auto p-4">
-            {menuItems.map((item) => renderMenuItem(item))}
+            {items.map((item) => (
+              <div key={item.href}>{renderMenuItem(item)}</div>
+            ))}
           </nav>
 
           {/* Footer - no mount animation */}

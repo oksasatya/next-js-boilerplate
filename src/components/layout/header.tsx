@@ -18,6 +18,7 @@ import { useTranslation } from "react-i18next";
 import i18next from "i18next";
 import { ensureI18n } from "@/lib/i18n";
 import { logout } from "@/lib/auth";
+import { useSidebarStore } from "@/lib/sidebar-store";
 
 // Initialize i18n before hooks
 ensureI18n();
@@ -68,6 +69,7 @@ export function Header({ onMenuClick, userData }: HeaderProps) {
   const [notifications] = useState(3);
   const { t } = useTranslation();
   const currentLang = (i18next.language?.split("-")[0] as LangKey) || "en";
+  const { open } = useSidebarStore();
   // Keep selection in sync with storage (ensureI18n already sets from storage)
   useEffect(() => {
     const saved = localStorage.getItem("i18nextLng");
@@ -109,7 +111,7 @@ export function Header({ onMenuClick, userData }: HeaderProps) {
           <Button
             variant="ghost"
             size="sm"
-            onClick={onMenuClick}
+            onClick={() => (onMenuClick ? onMenuClick() : open())}
             className="hover:bg-gradient-primary-hover rounded-lg p-2 transition-all duration-200 lg:hidden"
           >
             <Menu className="h-5 w-5" />
