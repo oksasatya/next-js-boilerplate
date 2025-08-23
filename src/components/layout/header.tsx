@@ -19,6 +19,9 @@ import i18next from "i18next";
 import { ensureI18n } from "@/lib/i18n";
 import { logout } from "@/lib/auth";
 import { useSidebarStore } from "@/lib/sidebar-store";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { useThemeStore } from "@/lib/theme-store";
+import { cn } from "@/lib/utils";
 
 // Initialize i18n before hooks
 ensureI18n();
@@ -68,9 +71,11 @@ interface HeaderProps {
 export function Header({ onMenuClick, userData }: HeaderProps) {
   const [notifications] = useState(3);
   const { t } = useTranslation();
+  const { resolvedTheme } = useThemeStore();
   const currentLang = (i18next.language?.split("-")[0] as LangKey) || "en";
   const { open } = useSidebarStore();
-  // Keep selection in sync with storage (ensureI18n already sets from storage)
+
+  // Keep selection in sync with storage
   useEffect(() => {
     const saved = localStorage.getItem("i18nextLng");
     if (saved && saved !== i18next.language) {
@@ -98,12 +103,19 @@ export function Header({ onMenuClick, userData }: HeaderProps) {
     return "AD";
   };
 
+  const isDark = resolvedTheme === "dark";
+
   return (
     <motion.header
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="sticky top-0 z-50 w-full border-b border-gray-200/80 bg-white/95 shadow-sm backdrop-blur-xl"
+      className={cn(
+        "sticky top-0 z-50 w-full border-b backdrop-blur-xl transition-all duration-300",
+        isDark
+          ? "border-gray-800 bg-gray-900/95 shadow-xl shadow-gray-900/20"
+          : "border-gray-200/80 bg-white/95 shadow-lg shadow-gray-200/50",
+      )}
     >
       <div className="flex h-16 items-center justify-between px-6">
         {/* Left Section */}
@@ -112,17 +124,32 @@ export function Header({ onMenuClick, userData }: HeaderProps) {
             variant="ghost"
             size="sm"
             onClick={() => (onMenuClick ? onMenuClick() : open())}
-            className="hover:bg-gradient-primary-hover rounded-lg p-2 transition-all duration-200 lg:hidden"
+            className={cn(
+              "rounded-lg p-2 transition-all duration-200 lg:hidden",
+              isDark
+                ? "text-gray-300 hover:bg-gray-800"
+                : "hover:bg-gradient-primary-hover text-gray-600",
+            )}
           >
             <Menu className="h-5 w-5" />
           </Button>
 
           {/* Page Title */}
           <div className="hidden lg:block">
-            <h1 className="text-gray- text-xl font-semibold text-gray-900">
+            <h1
+              className={cn(
+                "text-xl font-semibold transition-colors duration-300",
+                isDark ? "text-gray-100" : "text-gray-900",
+              )}
+            >
               {t("dashboard.title", "Dashboard")}
             </h1>
-            <p className="text-sm text-gray-500">
+            <p
+              className={cn(
+                "text-sm transition-colors duration-300",
+                isDark ? "text-gray-400" : "text-gray-500",
+              )}
+            >
               {t("dashboard.welcome", "Welcome back")}, {userData?.name?.split(" ")[0] || "Admin"}
             </p>
           </div>
@@ -131,10 +158,20 @@ export function Header({ onMenuClick, userData }: HeaderProps) {
         {/* Center Section - Search */}
         <div className="mx-8 hidden max-w-md flex-1 md:flex">
           <div className="relative w-full">
-            <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
+            <Search
+              className={cn(
+                "absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform transition-colors duration-200",
+                isDark ? "text-gray-500" : "text-gray-400",
+              )}
+            />
             <Input
               placeholder={t("search_placeholder", "Search anything...")}
-              className="h-10 border-gray-200 bg-gray-50/50 pr-4 pl-10 transition-all duration-200 focus:border-[var(--gradient-from)] focus:bg-white focus:ring-[var(--gradient-from)]/20"
+              className={cn(
+                "h-10 pr-4 pl-10 transition-all duration-200",
+                isDark
+                  ? "border-gray-700 bg-gray-800/50 text-gray-100 placeholder:text-gray-500 focus:border-blue-400 focus:bg-gray-800 focus:ring-blue-400/20"
+                  : "border-gray-200 bg-gray-50/50 text-gray-900 placeholder:text-gray-400 focus:border-[var(--gradient-from)] focus:bg-white focus:ring-[var(--gradient-from)]/20",
+              )}
             />
           </div>
         </div>
@@ -145,10 +182,18 @@ export function Header({ onMenuClick, userData }: HeaderProps) {
           <Button
             variant="ghost"
             size="sm"
-            className="hover:bg-gradient-primary-hover rounded-lg p-2 transition-all duration-200 md:hidden"
+            className={cn(
+              "rounded-lg p-2 transition-all duration-200 md:hidden",
+              isDark
+                ? "text-gray-300 hover:bg-gray-800"
+                : "hover:bg-gradient-primary-hover text-gray-600",
+            )}
           >
             <Search className="h-4 w-4" />
           </Button>
+
+          {/* Theme Toggle */}
+          <ThemeToggle variant="dropdown" size="sm" className="transition-all duration-200" />
 
           {/* Language Switcher */}
           <DropdownMenu>
@@ -157,7 +202,12 @@ export function Header({ onMenuClick, userData }: HeaderProps) {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="hover:bg-gradient-primary-hover rounded-lg p-2 transition-all duration-200"
+                  className={cn(
+                    "rounded-lg p-2 transition-all duration-200",
+                    isDark
+                      ? "text-gray-300 hover:bg-gray-800"
+                      : "hover:bg-gradient-primary-hover text-gray-600",
+                  )}
                 >
                   {languages[currentLang]?.flag || (
                     <Globe className="h-4 w-4 text-[var(--gradient-from)]" />
@@ -167,15 +217,25 @@ export function Header({ onMenuClick, userData }: HeaderProps) {
             </DropdownMenuTrigger>
             <DropdownMenuContent
               align="end"
-              className="w-48 border-gray-200 bg-white/95 backdrop-blur-xl"
+              className={cn(
+                "w-48 backdrop-blur-xl",
+                isDark ? "border-gray-700 bg-gray-900/95" : "border-gray-200 bg-white/95",
+              )}
             >
-              <DropdownMenuLabel>{t("language", "Language")}</DropdownMenuLabel>
-              <DropdownMenuSeparator />
+              <DropdownMenuLabel className={isDark ? "text-gray-100" : "text-gray-900"}>
+                {t("language", "Language")}
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator className={isDark ? "bg-gray-700" : "bg-gray-200"} />
               {(Object.keys(languages) as LangKey[]).map((code) => (
                 <DropdownMenuItem
                   key={code}
                   onClick={() => changeLanguage(code)}
-                  className="hover:bg-gradient-primary-hover transition-all duration-200"
+                  className={cn(
+                    "cursor-pointer transition-all duration-200",
+                    isDark
+                      ? "text-gray-300 hover:bg-gray-800"
+                      : "hover:bg-gradient-primary-hover text-gray-700",
+                  )}
                 >
                   <div className="flex w-full items-center gap-2">
                     {languages[code].flag}
@@ -194,14 +254,19 @@ export function Header({ onMenuClick, userData }: HeaderProps) {
             <Button
               variant="ghost"
               size="sm"
-              className="hover:bg-gradient-primary-hover relative rounded-lg p-2 transition-all duration-200"
+              className={cn(
+                "relative rounded-lg p-2 transition-all duration-200",
+                isDark
+                  ? "text-gray-300 hover:bg-gray-800"
+                  : "hover:bg-gradient-primary-hover text-gray-600",
+              )}
             >
               <Bell className="h-4 w-4" />
               {notifications > 0 && (
                 <motion.span
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
-                  className="bg-gradient-primary absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full text-xs font-semibold text-white shadow-sm"
+                  className="bg-gradient-primary absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full text-xs font-semibold text-white shadow-lg"
                 >
                   {notifications}
                 </motion.span>
@@ -214,7 +279,12 @@ export function Header({ onMenuClick, userData }: HeaderProps) {
             <Button
               variant="ghost"
               size="sm"
-              className="hover:bg-gradient-primary-hover rounded-lg p-2 transition-all duration-200"
+              className={cn(
+                "rounded-lg p-2 transition-all duration-200",
+                isDark
+                  ? "text-gray-300 hover:bg-gray-800"
+                  : "hover:bg-gradient-primary-hover text-gray-600",
+              )}
             >
               <Settings className="h-4 w-4" />
             </Button>
@@ -230,7 +300,12 @@ export function Header({ onMenuClick, userData }: HeaderProps) {
                 >
                   <Avatar className="h-9 w-9">
                     <AvatarImage src={userData?.avatar || "/placeholder-avatar.jpg"} alt="User" />
-                    <AvatarFallback className="bg-blue-500 font-semibold text-white">
+                    <AvatarFallback
+                      className={cn(
+                        "font-semibold text-white",
+                        isDark ? "bg-blue-600" : "bg-blue-500",
+                      )}
+                    >
                       {getUserInitials()}
                     </AvatarFallback>
                   </Avatar>
@@ -238,37 +313,71 @@ export function Header({ onMenuClick, userData }: HeaderProps) {
               </motion.div>
             </DropdownMenuTrigger>
             <DropdownMenuContent
-              className="w-56 border-gray-200 bg-white/95 backdrop-blur-xl"
+              className={cn(
+                "w-56 backdrop-blur-xl",
+                isDark ? "border-gray-700 bg-gray-900/95" : "border-gray-200 bg-white/95",
+              )}
               align="end"
               forceMount
             >
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm leading-none font-medium">
+                  <p
+                    className={cn(
+                      "text-sm leading-none font-medium",
+                      isDark ? "text-gray-100" : "text-gray-900",
+                    )}
+                  >
                     {userData?.name || "Administrator"}
                   </p>
-                  <p className="text-xs leading-none text-gray-500">
+                  <p
+                    className={cn(
+                      "text-xs leading-none",
+                      isDark ? "text-gray-400" : "text-gray-500",
+                    )}
+                  >
                     {userData?.email || "admin@example.com"}
                   </p>
                 </div>
               </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="hover:bg-gradient-primary-hover transition-all duration-200">
+              <DropdownMenuSeparator className={isDark ? "bg-gray-700" : "bg-gray-200"} />
+              <DropdownMenuItem
+                className={cn(
+                  "cursor-pointer transition-all duration-200",
+                  isDark
+                    ? "text-gray-300 hover:bg-gray-800"
+                    : "hover:bg-gradient-primary-hover text-gray-700",
+                )}
+              >
                 <User className="mr-2 h-4 w-4" />
                 <span>{t("profile", "Profile")}</span>
               </DropdownMenuItem>
-              <DropdownMenuItem className="hover:bg-gradient-primary-hover transition-all duration-200">
+              <DropdownMenuItem
+                className={cn(
+                  "cursor-pointer transition-all duration-200",
+                  isDark
+                    ? "text-gray-300 hover:bg-gray-800"
+                    : "hover:bg-gradient-primary-hover text-gray-700",
+                )}
+              >
                 <Settings className="mr-2 h-4 w-4" />
                 <span>{t("settings", "Settings")}</span>
               </DropdownMenuItem>
-              <DropdownMenuItem className="hover:bg-gradient-primary-hover transition-all duration-200">
+              <DropdownMenuItem
+                className={cn(
+                  "cursor-pointer transition-all duration-200",
+                  isDark
+                    ? "text-gray-300 hover:bg-gray-800"
+                    : "hover:bg-gradient-primary-hover text-gray-700",
+                )}
+              >
                 <HelpCircle className="mr-2 h-4 w-4" />
                 <span>{t("help", "Help")}</span>
               </DropdownMenuItem>
-              <DropdownMenuSeparator />
+              <DropdownMenuSeparator className={isDark ? "bg-gray-700" : "bg-gray-200"} />
               <DropdownMenuItem
                 onClick={handleLogout}
-                className="text-red-600 transition-all duration-200 hover:bg-red-50 hover:text-red-700"
+                className="cursor-pointer text-red-500 transition-all duration-200 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-400"
               >
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>{t("logout", "Log out")}</span>

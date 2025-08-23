@@ -3,6 +3,8 @@ import "./globals.css";
 import { Providers } from "@/components/providers";
 import { DM_Sans } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
+import { ThemeScript } from "@/components/theme-script";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import React from "react";
 
 const dmSans = DM_Sans({
@@ -13,7 +15,7 @@ const dmSans = DM_Sans({
 
 export const metadata: Metadata = {
   title: "AdminFlow - Modern Dashboard",
-  description: "Frontend-only Next 15 with Tailwind v4, shadcn, RTK Query, Zod, i18n",
+  description: "Frontend-only Next 15 with Tailwind v4, shadcn, RTK Query, Zod, i18n, Dark Mode",
 };
 
 export default function RootLayout({
@@ -23,9 +25,23 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${dmSans.variable} font-sans antialiased`}>
-        <Providers>{children}</Providers>
-        <Toaster />
+      <head>
+        <ThemeScript />
+      </head>
+      <body className={`${dmSans.variable} bg-background text-foreground font-sans antialiased`}>
+        <Providers>
+          {/* Global Theme Toggle - only show on non-admin pages */}
+          <div className="[&]:not(.admin-layout) admin-layout:hidden fixed top-6 right-6 z-50 block">
+            <ThemeToggle
+              variant="dropdown"
+              className="bg-background border-border border shadow-lg"
+            />
+          </div>
+
+          {children}
+
+          <Toaster />
+        </Providers>
       </body>
     </html>
   );

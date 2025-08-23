@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ShoppingCart, UserPlus, TrendingUp, AlertCircle, CheckCircle, Clock } from "lucide-react";
+import { useThemeStore } from "@/lib/theme-store";
+import { cn } from "@/lib/utils";
 
 const recentActivities = [
   {
@@ -68,39 +70,122 @@ const recentActivities = [
   },
 ];
 
-const getActivityBadge = (type: string) => {
+const getActivityBadge = (type: string, isDark: boolean) => {
+  const baseClasses = "border-0 transition-colors duration-300";
+
   switch (type) {
     case "purchase":
       return (
-        <Badge className="bg-gradient-primary-subtle border-0 text-[var(--gradient-to)]">
+        <Badge
+          className={cn(
+            baseClasses,
+            isDark
+              ? "bg-blue-900/30 text-blue-300"
+              : "bg-gradient-primary-subtle text-[var(--gradient-to)]",
+          )}
+        >
           Purchase
         </Badge>
       );
     case "signup":
-      return <Badge className="border-0 bg-blue-50 text-blue-600">New User</Badge>;
+      return (
+        <Badge
+          className={cn(
+            baseClasses,
+            isDark ? "bg-blue-900/30 text-blue-300" : "bg-blue-50 text-blue-600",
+          )}
+        >
+          New User
+        </Badge>
+      );
     case "upgrade":
-      return <Badge className="border-0 bg-purple-50 text-purple-600">Upgrade</Badge>;
+      return (
+        <Badge
+          className={cn(
+            baseClasses,
+            isDark ? "bg-purple-900/30 text-purple-300" : "bg-purple-50 text-purple-600",
+          )}
+        >
+          Upgrade
+        </Badge>
+      );
     case "issue":
-      return <Badge className="border-0 bg-red-50 text-red-600">Issue</Badge>;
+      return (
+        <Badge
+          className={cn(
+            baseClasses,
+            isDark ? "bg-red-900/30 text-red-300" : "bg-red-50 text-red-600",
+          )}
+        >
+          Issue
+        </Badge>
+      );
     case "completed":
-      return <Badge className="border-0 bg-emerald-50 text-emerald-600">Completed</Badge>;
+      return (
+        <Badge
+          className={cn(
+            baseClasses,
+            isDark ? "bg-emerald-900/30 text-emerald-300" : "bg-emerald-50 text-emerald-600",
+          )}
+        >
+          Completed
+        </Badge>
+      );
     default:
-      return <Badge className="border-0 bg-gray-50 text-gray-600">Activity</Badge>;
+      return (
+        <Badge
+          className={cn(
+            baseClasses,
+            isDark ? "bg-gray-800 text-gray-300" : "bg-gray-50 text-gray-600",
+          )}
+        >
+          Activity
+        </Badge>
+      );
   }
 };
 
 export function RecentActivity() {
+  const { resolvedTheme } = useThemeStore();
+  const isDark = resolvedTheme === "dark";
+
   return (
-    <Card className="border border-gray-200/80 bg-white/95 shadow-lg backdrop-blur-xl transition-all duration-300 hover:shadow-xl">
+    <Card
+      className={cn(
+        "shadow-lg backdrop-blur-xl transition-all duration-300 hover:shadow-xl",
+        isDark ? "border-gray-700 bg-gray-900/95" : "border-gray-200/80 bg-white/95",
+      )}
+    >
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="text-xl font-bold text-gray-900">Recent Activity</CardTitle>
-            <p className="mt-1 text-sm text-gray-500">Latest user interactions</p>
+            <CardTitle
+              className={cn(
+                "text-xl font-bold transition-colors duration-300",
+                isDark ? "text-gray-100" : "text-gray-900",
+              )}
+            >
+              Recent Activity
+            </CardTitle>
+            <p
+              className={cn(
+                "mt-1 text-sm transition-colors duration-300",
+                isDark ? "text-gray-400" : "text-gray-500",
+              )}
+            >
+              Latest user interactions
+            </p>
           </div>
           <div className="flex items-center gap-2">
             <div className="bg-gradient-primary h-2 w-2 animate-pulse rounded-full"></div>
-            <span className="text-xs text-gray-500">Live</span>
+            <span
+              className={cn(
+                "text-xs transition-colors duration-300",
+                isDark ? "text-gray-400" : "text-gray-500",
+              )}
+            >
+              Live
+            </span>
           </div>
         </div>
       </CardHeader>
@@ -115,7 +200,10 @@ export function RecentActivity() {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
-              className="group flex cursor-pointer items-center space-x-4 rounded-lg p-3 transition-colors duration-200 hover:bg-gray-50/50"
+              className={cn(
+                "group flex cursor-pointer items-center space-x-4 rounded-lg p-3 transition-colors duration-200",
+                isDark ? "hover:bg-gray-800/50" : "hover:bg-gray-50/50",
+              )}
             >
               {/* User Avatar */}
               <Avatar className="h-10 w-10 ring-2 ring-[var(--gradient-from)]/20">
@@ -129,16 +217,28 @@ export function RecentActivity() {
               </Avatar>
 
               {/* Activity Icon */}
-              <div className={`rounded-lg p-2 ${activity.iconBg} shadow-sm`}>
+              <div className={cn("rounded-lg p-2 shadow-sm", activity.iconBg)}>
                 <Icon className="h-4 w-4 text-white" />
               </div>
 
               {/* Activity Details */}
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between">
-                  <p className="truncate text-sm font-medium text-gray-900">
+                  <p
+                    className={cn(
+                      "truncate text-sm font-medium transition-colors duration-300",
+                      isDark ? "text-gray-100" : "text-gray-900",
+                    )}
+                  >
                     <span className="font-semibold">{activity.user}</span>
-                    <span className="ml-1 font-normal text-gray-600">{activity.action}</span>
+                    <span
+                      className={cn(
+                        "ml-1 font-normal transition-colors duration-300",
+                        isDark ? "text-gray-300" : "text-gray-600",
+                      )}
+                    >
+                      {activity.action}
+                    </span>
                   </p>
                   {activity.amount && (
                     <span className="text-gradient-primary text-sm font-semibold">
@@ -148,15 +248,34 @@ export function RecentActivity() {
                 </div>
 
                 <div className="mt-1 flex items-center justify-between">
-                  <p className="truncate text-xs text-gray-500">{activity.item}</p>
+                  <p
+                    className={cn(
+                      "truncate text-xs transition-colors duration-300",
+                      isDark ? "text-gray-400" : "text-gray-500",
+                    )}
+                  >
+                    {activity.item}
+                  </p>
                   <div className="flex flex-shrink-0 items-center gap-2">
-                    {getActivityBadge(activity.type)}
+                    {getActivityBadge(activity.type, isDark)}
                   </div>
                 </div>
 
                 <div className="mt-1 flex items-center gap-1">
-                  <Clock className="h-3 w-3 text-gray-400" />
-                  <span className="text-xs text-gray-400">{activity.time}</span>
+                  <Clock
+                    className={cn(
+                      "h-3 w-3 transition-colors duration-300",
+                      isDark ? "text-gray-500" : "text-gray-400",
+                    )}
+                  />
+                  <span
+                    className={cn(
+                      "text-xs transition-colors duration-300",
+                      isDark ? "text-gray-500" : "text-gray-400",
+                    )}
+                  >
+                    {activity.time}
+                  </span>
                 </div>
               </div>
             </motion.div>
@@ -164,8 +283,20 @@ export function RecentActivity() {
         })}
 
         {/* Footer */}
-        <div className="border-t border-gray-200 pt-4 text-center">
-          <p className="text-xs text-gray-500">Showing latest 5 activities</p>
+        <div
+          className={cn(
+            "border-t pt-4 text-center transition-colors duration-300",
+            isDark ? "border-gray-700" : "border-gray-200",
+          )}
+        >
+          <p
+            className={cn(
+              "text-xs transition-colors duration-300",
+              isDark ? "text-gray-400" : "text-gray-500",
+            )}
+          >
+            Showing latest 5 activities
+          </p>
         </div>
       </CardContent>
     </Card>

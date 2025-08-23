@@ -38,6 +38,7 @@ import { cn } from "@/lib/utils";
 import { logout } from "@/lib/auth";
 import type { AdminMenuItem } from "@/lib/get-admin-menu";
 import { useSidebarStore } from "@/lib/sidebar-store";
+import { useThemeStore } from "@/lib/theme-store";
 
 interface SidebarProps {
   isOpen?: boolean;
@@ -48,7 +49,6 @@ interface SidebarProps {
     role?: string;
     avatar?: string;
   };
-  // New: optional dynamic menu from server
   menuItems?: AdminMenuItem[];
 }
 
@@ -171,20 +171,20 @@ const staticMenuItems: MenuItem[] = [
   },
 ];
 
-function SidebarSkeleton() {
+function SidebarSkeleton({ isDark }: { isDark: boolean }) {
   return (
     <div className="flex flex-col space-y-3 p-4">
       {/* Logo skeleton */}
       <div className="mb-6 flex items-center space-x-3">
-        <Skeleton className="h-10 w-10 rounded-xl" />
-        <Skeleton className="h-6 w-24" />
+        <Skeleton className={cn("h-10 w-10 rounded-xl", isDark ? "bg-gray-700" : "bg-gray-200")} />
+        <Skeleton className={cn("h-6 w-24", isDark ? "bg-gray-700" : "bg-gray-200")} />
       </div>
 
       {/* Menu items skeleton */}
       {Array.from({ length: 9 }).map((_, i) => (
         <div key={i} className="flex items-center space-x-3">
-          <Skeleton className="h-5 w-5 rounded" />
-          <Skeleton className="h-4 w-20" />
+          <Skeleton className={cn("h-5 w-5 rounded", isDark ? "bg-gray-700" : "bg-gray-200")} />
+          <Skeleton className={cn("h-4 w-20", isDark ? "bg-gray-700" : "bg-gray-200")} />
         </div>
       ))}
     </div>
@@ -199,6 +199,8 @@ export default function Sidebar({
 }: SidebarProps) {
   const pathname = usePathname();
   const { isOpen: isOpenStore, close } = useSidebarStore();
+  const { resolvedTheme } = useThemeStore();
+  const isDark = resolvedTheme === "dark";
   const isOpen = isOpenProp ?? isOpenStore ?? true;
   const onClose = onCloseProp ?? close;
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -280,18 +282,20 @@ export default function Sidebar({
     return (
       <div
         className={cn(
-          "border-r border-gray-200/80 bg-white/95 shadow-xl",
+          "shadow-xl lg:static lg:inset-0",
+          isDark
+            ? "border-r border-gray-800 bg-gray-900/95"
+            : "border-r border-gray-200/80 bg-white/95",
           isCollapsed ? "lg:w-20" : "lg:w-64",
           "fixed inset-y-0 left-0 z-40 w-64",
           isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
         )}
       >
-        <SidebarSkeleton />
+        <SidebarSkeleton isDark={isDark} />
       </div>
     );
   }
 
-  // Reinstate dropdown animation only
   const renderMenuItem = (item: MenuItem) => {
     const Icon = item.icon || FileText;
     const isActive = pathname === item.href;
@@ -303,25 +307,38 @@ export default function Sidebar({
       <Button
         variant="ghost"
         className={cn(
-          "group relative h-11 w-full justify-start rounded-xl",
+          "group relative h-11 w-full justify-start rounded-xl transition-all duration-200",
           isActive || isParentOfActive
-            ? "bg-blue-500/15 text-blue-600 shadow-sm"
-            : "text-gray-700 hover:bg-blue-500/8 hover:text-blue-600",
+            ? isDark
+              ? "bg-blue-500/20 text-blue-400 shadow-sm"
+              : "bg-blue-500/15 text-blue-600 shadow-sm"
+            : isDark
+              ? "text-gray-300 hover:bg-blue-500/10 hover:text-blue-400"
+              : "text-gray-700 hover:bg-blue-500/8 hover:text-blue-600",
         )}
         onClick={hasChildren && !isCollapsed ? () => toggleExpanded(item.title) : undefined}
       >
         {/* Active indicator */}
         {(isActive || isParentOfActive) && (
-          <div className="absolute top-1/2 left-0 h-6 w-1 -translate-y-1/2 rounded-full bg-white shadow-sm" />
+          <div
+            className={cn(
+              "absolute top-1/2 left-0 h-6 w-1 -translate-y-1/2 rounded-full shadow-sm",
+              isDark ? "bg-blue-400" : "bg-blue-600",
+            )}
+          />
         )}
 
         <Icon
           className={cn(
-            "h-5 w-5 flex-shrink-0",
+            "h-5 w-5 flex-shrink-0 transition-colors duration-200",
             isCollapsed ? "" : "mr-3",
             isActive || isParentOfActive
-              ? "text-blue-600"
-              : "text-gray-500 group-hover:text-blue-600",
+              ? isDark
+                ? "text-blue-400"
+                : "text-blue-600"
+              : isDark
+                ? "text-gray-500 group-hover:text-blue-400"
+                : "text-gray-500 group-hover:text-blue-600",
           )}
         />
 
@@ -332,10 +349,14 @@ export default function Sidebar({
               {item.badge && (
                 <span
                   className={cn(
-                    "rounded-full px-2 py-0.5 text-xs font-semibold",
+                    "rounded-full px-2 py-0.5 text-xs font-semibold transition-colors duration-200",
                     item.badge === "New"
-                      ? "bg-blue-600 text-white shadow-sm"
-                      : "bg-gray-100 text-gray-600",
+                      ? isDark
+                        ? "bg-blue-600 text-white shadow-sm"
+                        : "bg-blue-600 text-white shadow-sm"
+                      : isDark
+                        ? "bg-gray-700 text-gray-300"
+                        : "bg-gray-100 text-gray-600",
                   )}
                 >
                   {item.badge}
@@ -379,10 +400,14 @@ export default function Sidebar({
                           <Button
                             variant="ghost"
                             className={cn(
-                              "h-9 w-full justify-start rounded-lg text-sm",
+                              "h-9 w-full justify-start rounded-lg text-sm transition-all duration-200",
                               isChildActive
-                                ? "border-l-2 border-blue-600 bg-blue-500/10 text-blue-600"
-                                : "text-gray-600 hover:bg-blue-500/5 hover:text-blue-600",
+                                ? isDark
+                                  ? "border-l-2 border-blue-400 bg-blue-500/15 text-blue-400"
+                                  : "border-l-2 border-blue-600 bg-blue-500/10 text-blue-600"
+                                : isDark
+                                  ? "text-gray-400 hover:bg-blue-500/8 hover:text-blue-400"
+                                  : "text-gray-600 hover:bg-blue-500/5 hover:text-blue-600",
                             )}
                           >
                             <ChildIcon className="mr-3 h-4 w-4 flex-shrink-0" />
@@ -418,10 +443,13 @@ export default function Sidebar({
         )}
       </AnimatePresence>
 
-      {/* Sidebar - collapse has no animation */}
+      {/* Sidebar */}
       <div
         className={cn(
-          "border-r border-gray-200/80 bg-white/95 shadow-xl lg:static lg:inset-0",
+          "shadow-xl transition-colors duration-300 lg:static lg:inset-0",
+          isDark
+            ? "border-r border-gray-800 bg-gray-900/95"
+            : "border-r border-gray-200/80 bg-white/95",
           isCollapsed ? "lg:w-20" : "lg:w-64",
           "fixed inset-y-0 left-0 z-40 w-64",
           isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
@@ -429,25 +457,37 @@ export default function Sidebar({
       >
         <div className="flex h-full flex-col">
           {/* Header */}
-          <div className="relative flex items-center justify-between border-b border-gray-200/50 p-4">
+          <div
+            className={cn(
+              "relative flex items-center justify-between border-b p-4 transition-colors duration-300",
+              isDark ? "border-gray-700" : "border-gray-200/50",
+            )}
+          >
             <div
               className={cn(
-                "flex items-center space-x-3",
+                "flex items-center space-x-3 transition-opacity duration-200",
                 isCollapsed ? "pointer-events-none opacity-0" : "pointer-events-auto opacity-100",
               )}
             >
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 shadow-lg shadow-blue-600/20">
+              <div className="bg-gradient-primary flex h-10 w-10 items-center justify-center rounded-xl shadow-lg">
                 <Zap className="h-5 w-5 text-white" />
               </div>
               {!isCollapsed && (
                 <div>
-                  <h1 className="text-lg font-bold text-blue-600">ModernFlow</h1>
-                  <p className="text-xs text-gray-500">Admin Dashboard</p>
+                  <h1 className="text-gradient-primary text-lg font-bold">ModernFlow</h1>
+                  <p
+                    className={cn(
+                      "text-xs transition-colors duration-300",
+                      isDark ? "text-gray-400" : "text-gray-500",
+                    )}
+                  >
+                    Admin Dashboard
+                  </p>
                 </div>
               )}
             </div>
 
-            {/* Collapse/Expand Toggle - no rotation animation */}
+            {/* Collapse/Expand Toggle */}
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -455,20 +495,23 @@ export default function Sidebar({
                   size="sm"
                   onClick={() => setIsCollapsed(!isCollapsed)}
                   className={cn(
-                    "z-10 hidden rounded-lg p-2 lg:flex",
+                    "z-10 hidden rounded-lg p-2 transition-colors duration-200 lg:flex",
                     isCollapsed
                       ? "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
-                      : "absolute top-1/2 right-4 -translate-y-1/2 hover:bg-blue-500/8",
+                      : isDark
+                        ? "absolute top-1/2 right-4 -translate-y-1/2 hover:bg-blue-500/10"
+                        : "absolute top-1/2 right-4 -translate-y-1/2 hover:bg-blue-500/8",
                   )}
                 >
-                  <div>
-                    <Menu className="h-4 w-4" />
-                  </div>
+                  <Menu className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent
                 side={isCollapsed ? "bottom" : "right"}
-                className="border-gray-200 bg-white/95"
+                className={cn(
+                  "transition-colors duration-300",
+                  isDark ? "border-gray-700 bg-gray-800/95" : "border-gray-200 bg-white/95",
+                )}
                 sideOffset={8}
               >
                 <p className="text-sm">{isCollapsed ? "Expand sidebar" : "Collapse sidebar"}</p>
@@ -483,25 +526,49 @@ export default function Sidebar({
             ))}
           </nav>
 
-          {/* Footer - no mount animation */}
-          <div className="border-t border-gray-200/50 p-4">
+          {/* Footer */}
+          <div
+            className={cn(
+              "border-t p-4 transition-colors duration-300",
+              isDark ? "border-gray-700" : "border-gray-200/50",
+            )}
+          >
             {!isCollapsed ? (
               <div className="space-y-3">
-                <div className="flex items-center space-x-3 rounded-xl bg-gradient-to-r from-gray-50 to-gray-100/50 p-3">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600">
+                <div
+                  className={cn(
+                    "flex items-center space-x-3 rounded-xl p-3 transition-colors duration-300",
+                    isDark
+                      ? "bg-gradient-to-r from-gray-800 to-gray-700/50"
+                      : "bg-gradient-to-r from-gray-50 to-gray-100/50",
+                  )}
+                >
+                  <div className="bg-gradient-primary flex h-8 w-8 items-center justify-center rounded-lg">
                     <User className="h-4 w-4 text-white" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-gray-900">
+                    <p
+                      className={cn(
+                        "truncate text-sm font-medium transition-colors duration-300",
+                        isDark ? "text-gray-100" : "text-gray-900",
+                      )}
+                    >
                       {userData?.name || "Administrator"}
                     </p>
-                    <p className="truncate text-xs text-gray-500">{userData?.role || "Admin"}</p>
+                    <p
+                      className={cn(
+                        "truncate text-xs transition-colors duration-300",
+                        isDark ? "text-gray-400" : "text-gray-500",
+                      )}
+                    >
+                      {userData?.role || "Admin"}
+                    </p>
                   </div>
                 </div>
                 <Button
                   onClick={handleLogout}
                   variant="ghost"
-                  className="h-10 w-full justify-start rounded-xl text-red-600 hover:bg-red-50 hover:text-red-700"
+                  className="h-10 w-full justify-start rounded-xl text-red-500 transition-colors duration-200 hover:bg-red-50 hover:text-red-600 dark:text-red-400 dark:hover:bg-red-900/20 dark:hover:text-red-300"
                 >
                   <LogOut className="mr-3 h-4 w-4" />
                   <span className="text-sm">Logout</span>
@@ -514,14 +581,20 @@ export default function Sidebar({
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="w-full rounded-xl p-2 hover:bg-gray-100"
+                      className={cn(
+                        "w-full rounded-xl p-2 transition-colors duration-200",
+                        isDark ? "hover:bg-gray-800" : "hover:bg-gray-100",
+                      )}
                     >
                       <User className="h-4 w-4" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent
                     side="right"
-                    className="border-gray-200 bg-white/95 shadow-lg"
+                    className={cn(
+                      "shadow-lg transition-colors duration-300",
+                      isDark ? "border-gray-700 bg-gray-800/95" : "border-gray-200 bg-white/95",
+                    )}
                     sideOffset={8}
                   >
                     <div>
@@ -537,14 +610,17 @@ export default function Sidebar({
                       onClick={handleLogout}
                       variant="ghost"
                       size="sm"
-                      className="w-full rounded-xl p-2 text-red-600 hover:bg-red-50"
+                      className="w-full rounded-xl p-2 text-red-500 transition-colors duration-200 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
                     >
                       <LogOut className="h-4 w-4" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent
                     side="right"
-                    className="border-gray-200 bg-white/95 shadow-lg"
+                    className={cn(
+                      "shadow-lg transition-colors duration-300",
+                      isDark ? "border-gray-700 bg-gray-800/95" : "border-gray-200 bg-white/95",
+                    )}
                     sideOffset={8}
                   >
                     <p className="text-sm">Logout</p>
