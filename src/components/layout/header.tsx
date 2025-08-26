@@ -17,7 +17,7 @@ import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import i18next from "i18next";
 import { ensureI18n } from "@/lib/i18n";
-import { logout } from "@/lib/auth";
+import { logout as localLogout } from "@/lib/auth";
 import { useSidebarStore } from "@/lib/sidebar-store";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useThemeStore } from "@/lib/theme-store";
@@ -66,9 +66,10 @@ interface HeaderProps {
     role?: string;
     avatar?: string;
   };
+  onLogout?: () => void;
 }
 
-export function Header({ onMenuClick, userData }: HeaderProps) {
+export function Header({ onMenuClick, userData, onLogout }: HeaderProps) {
   const [notifications] = useState(3);
   const { t } = useTranslation();
   const { resolvedTheme } = useThemeStore();
@@ -88,7 +89,8 @@ export function Header({ onMenuClick, userData }: HeaderProps) {
   };
 
   const handleLogout = () => {
-    logout();
+    if (onLogout) return onLogout();
+    localLogout();
   };
 
   const getUserInitials = () => {

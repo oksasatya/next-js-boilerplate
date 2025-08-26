@@ -10,6 +10,19 @@ export const DUMMY_CREDENTIALS = {
   password: "password123",
 };
 
+const FE_SESSION_COOKIE = "fe_session";
+
+export function setFeSession(days = 30) {
+  if (typeof document === "undefined") return;
+  const maxAge = days * 24 * 60 * 60;
+  document.cookie = `${FE_SESSION_COOKIE}=1; path=/; max-age=${maxAge}; samesite=lax`;
+}
+
+export function clearFeSession() {
+  if (typeof document === "undefined") return;
+  document.cookie = `${FE_SESSION_COOKIE}=; path=/; max-age=0; samesite=lax`;
+}
+
 // Centralized client-side logout helper: clears client cache/state and redirects to /login
 // Safe to call from any client component.
 export function logout() {
@@ -20,6 +33,13 @@ export function logout() {
       localStorage.removeItem("token");
     } catch {
       // ignore storage errors
+    }
+
+    // Clear FE session cookie
+    try {
+      clearFeSession();
+    } catch {
+      // ignore cookie errors
     }
 
     // Reset RTK Query cache/state

@@ -2,7 +2,7 @@
 import { loginSchema, type LoginInput } from "@/features/auth/schemas";
 import { useLoginMutation } from "@/features/auth/api";
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -27,6 +27,8 @@ import {
 import { useLoadingStore } from "@/lib/loading-store";
 import { useThemeStore } from "@/lib/theme-store";
 import { cn } from "@/lib/utils";
+import { setFeSession } from "@/lib/auth";
+import { clearFeSession } from "@/lib/auth";
 
 const DEMO_CREDENTIALS = {
   email: "test@example.com",
@@ -35,7 +37,9 @@ const DEMO_CREDENTIALS = {
 
 export default function LoginPage() {
   const router = useRouter();
-  const [, { isLoading }] = useLoginMutation();
+  const searchParams = useSearchParams();
+  const nextParam = searchParams?.get("next");
+  const [login, { isLoading: isLoginLoading }] = useLoginMutation();
   const { setIsLoading } = useLoadingStore();
   const { resolvedTheme } = useThemeStore();
   const isDark = resolvedTheme === "dark";
@@ -45,7 +49,6 @@ export default function LoginPage() {
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [isHovered, setIsHovered] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Animated background particles
   const particles = Array.from({ length: 50 }, (_, i) => ({
@@ -77,53 +80,55 @@ export default function LoginPage() {
     }
   }
 
+  const redirectAfterAuth = () => {
+    setIsLoading(true);
+    router.replace(nextParam || "/admin/dashboard");
+  };
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+
     const parsed = loginSchema.safeParse(form);
     if (!parsed.success) {
       validateRealtime({});
       return;
     }
 
-    // Mock login success for demo credentials
-    if (form.email === DEMO_CREDENTIALS.email && form.password === DEMO_CREDENTIALS.password) {
-      try {
-        setIsSubmitting(true);
-
-        const loadingToast = toast.loading("Authenticating...", {
-          description: "Please wait while we verify your credentials",
-        });
-
-        // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 3000));
-
-        // Dismiss loading toast and show success
-        toast.dismiss(loadingToast);
-        toast.success("Login Successful!", {
-          description: "Welcome back! Redirecting to dashboard...",
-        });
-
-        // Only show global loader right before redirect
-        setIsLoading(true);
-        setTimeout(() => {
-          router.replace("/admin/dashboard");
-        });
-
-        return;
-      } catch (error) {
-        console.error("Login error:", error);
-        toast.error("Login Failed", {
-          description: "Something went wrong. Please try again.",
-        });
-      } finally {
-        setIsSubmitting(false);
-      }
-    } else {
-      // For non-demo credentials, show error
-      setErrors({ password: "Invalid credentials. Please use the demo account below." });
-      toast.error("Invalid Credentials", {
-        description: "Please use the demo account provided below.",
+    let loadingToast: string | number | undefined;
+    try {
+      loadingToast = toast.loading("Authenticating...", {
+        description: "Please wait while we verify your credentials",
       });
+
+      const res = await login(form).unwrap();
+
+      const requiresOtp = Boolean((res as any)?.requires_otp ?? (res as any)?.data?.requires_otp);
+      if (requiresOtp) {
+        setErrors({});
+        // Clear any stale FE session to avoid middleware redirecting to dashboard
+        clearFeSession();
+        toast.message("OTP required", {
+          description: "Check your email for the 6-digit code to continue",
+        });
+        const qs = new URLSearchParams();
+        qs.set("email", form.email);
+        if (nextParam) qs.set("next", nextParam);
+        router.replace(`/otp?${qs.toString()}`);
+        return;
+      }
+
+      // If no OTP required, mark FE session now
+      setFeSession();
+      toast.success("Login Successful!", {
+        description: "Welcome back! Redirecting to dashboard...",
+      });
+      redirectAfterAuth();
+    } catch (error: any) {
+      const msg = error?.data?.message || "Invalid email or password";
+      setErrors({ email: msg, password: msg });
+      toast.error("Login Failed", { description: msg });
+    } finally {
+      if (loadingToast !== undefined) toast.dismiss(loadingToast as any);
     }
   }
 
@@ -152,7 +157,7 @@ export default function LoginPage() {
     { icon: Globe, text: "Global Access" },
   ];
 
-  const buttonIsLoading = isLoading || isSubmitting;
+  const buttonIsLoading = isLoginLoading;
 
   return (
     <div
@@ -495,6 +500,8 @@ export default function LoginPage() {
                           isDark
                             ? "border-gray-600 bg-gray-800 text-gray-100 placeholder:text-gray-500"
                             : "border-gray-200 bg-white text-gray-900 placeholder:text-gray-400",
+                          errors.email &&
+                            "border-red-500 focus:border-red-500 focus:ring-red-500/20",
                         )}
                         disabled={buttonIsLoading}
                       />
@@ -560,6 +567,8 @@ export default function LoginPage() {
                           isDark
                             ? "border-gray-600 bg-gray-800 text-gray-100 placeholder:text-gray-500"
                             : "border-gray-200 bg-white text-gray-900 placeholder:text-gray-400",
+                          errors.password &&
+                            "border-red-500 focus:border-red-500 focus:ring-red-500/20",
                         )}
                         disabled={buttonIsLoading}
                       />
